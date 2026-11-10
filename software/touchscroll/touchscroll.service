@@ -1,0 +1,19 @@
+[Unit]
+Description=Touchscreen taps and two-finger swipes for the foreground console
+Documentation=file:/opt/touchscroll/README.md
+After=systemd-udevd.service
+Wants=systemd-udevd.service
+
+[Service]
+Type=simple
+# tty mode pushes SGR mouse sequences into the foreground console's input
+# with TIOCSTI, which the kernel only allows for root or the tty owner. It
+# only reads the touchscreen and writes to the active console.
+ExecStart=/usr/bin/python3 /opt/touchscroll/touchscroll.py --mode tty
+Restart=on-failure
+RestartSec=2
+KillSignal=SIGTERM
+TimeoutStopSec=5
+
+[Install]
+WantedBy=multi-user.target

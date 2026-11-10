@@ -1,0 +1,24 @@
+[Unit]
+Description=Xbox 360 Chatpad keyboard driver (UART -> uinput)
+Documentation=file:/opt/chatpad/README.md
+After=systemd-udevd.service
+Wants=systemd-udevd.service
+# Ready before the console login prompt appears.
+Before=getty.target console-getty.service
+
+[Service]
+Type=simple
+User=chatpad
+Group=chatpad
+ExecStart=/usr/bin/python3 /opt/chatpad/chatpad_driver.py --config /etc/chatpad/config.json
+Restart=on-failure
+RestartSec=2
+KillSignal=SIGTERM
+TimeoutStopSec=5
+
+# If config.json sets "tx_gpio" (bit-banged transmit), install.sh adds a
+# drop-in at /etc/systemd/system/chatpad.service.d/tx-gpio.conf that grants
+# /dev/gpiomem access and CAP_SYS_NICE for SCHED_FIFO timing.
+
+[Install]
+WantedBy=multi-user.target

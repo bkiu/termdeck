@@ -1,0 +1,58 @@
+#!/bin/sh
+# wifistatus — one-line WiFi status.
+#
+#   wifistatus --once   print one plain line and exit (for a status bar:
+#                       zellij's zjstatus, tmux, a shell prompt, ...)
+#   wifistatus          loop forever, redrawing a right-aligned line every
+#                       INTERVAL seconds (for a dedicated pane)
+#
+#   connected:  MyNetwork 57% 192.168.1.23
+#   offline:    WiFi --
+#
+# Reads iw, /proc/net/wireless and ip instead of nmcli: no D-Bus round
+# trips, so it's cheap enough to run every few seconds on a Pi 3A+.
+# The interface is the first one `iw dev` lists; set WIFI_IFACE to force one.
+
+# iw lives in /usr/sbin, which isn't on a normal user's PATH on Debian
+PATH=$PATH:/usr/sbin:/sbin
+
+IFACE=${WIFI_IFACE:-$(iw dev 2>/dev/null | awk '$1 == "Interface" { print $2; exit }')}
+IFACE=${IFACE:-wlan0}
+INTERVAL=${WIFI_INTERVAL:-10}
+
+status_line() {
+    if command -v iw >/dev/null 2>&1; then
+        ssid=$(iw dev "$IFACE" link 2>/dev/null | sed -n 's/^[[:space:]]*SSID: //p')
+    else
+        ssid=$(timeout 5 nmcli -t -f ACTIVE,SSID dev wifi 2>/dev/null | sed -n 's/^yes://p' | head -1)
+    fi
+    if [ -z "$ssid" ]; then
+        echo "WiFi --"
+        return
+    fi
+
+    # link quality is out of 70 on cfg80211 drivers (brcmfmac included)
+    sig=$(awk -v i="$IFACE:" '$1 == i { printf "%d%%", $3 * 100 / 70 }' /proc/net/wireless 2>/dev/null)
+    ip=$(ip -4 -o addr show dev "$IFACE" 2>/dev/null | awk '{ print $4; exit }')
+    ip=${ip%%/*}
+
+    echo "$ssid${sig:+ $sig}${ip:+ $ip}"
+}
+
+if [ "$1" = "--once" ]; then
+    status_line
+    exit 0
+fi
+
+while :; do
+    text=$(status_line)
+
+    # right-align within the pane
+    cols=$(stty size 2>/dev/null | awk '{print $2}')
+    if [ -n "$cols" ] && [ "${#text}" -le "$cols" ]; then
+        text=$(printf '%*s' "$cols" "$text")
+    fi
+
+    printf '\033[2J\033[1;1H%s' "$text"
+    sleep "$INTERVAL"
+done

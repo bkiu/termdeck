@@ -1,0 +1,7 @@
+# Python
+__pycache__/
+*.py[cod]
+
+# Editor / OS
+*.swp
+.DS_Store

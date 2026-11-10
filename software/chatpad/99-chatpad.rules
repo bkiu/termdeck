@@ -1,0 +1,8 @@
+# Give the chatpad service group access to the serial port the driver reads.
+# /dev/serial0 is a symlink to the PL011 UART (ttyAMA0), or to ttyS0 if
+# Bluetooth kept the PL011 (dtoverlay=miniuart-bt); match both.
+#
+# /dev/uinput is a static node that udev does not manage, so its mode is set
+# by /etc/tmpfiles.d/chatpad.conf (written by install.sh) instead.
+KERNEL=="ttyAMA0", SUBSYSTEM=="tty", GROUP="chatpad", MODE="0660"
+KERNEL=="ttyS0",   SUBSYSTEM=="tty", GROUP="chatpad", MODE="0660"
