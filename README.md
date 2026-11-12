@@ -1,3 +1,4 @@
+<img width="1200" height="600" alt="termdeck" src="https://github.com/user-attachments/assets/e99fdaad-6ac9-47cf-ae35-fbabdb62fade" />
 # term/deck
 
 
