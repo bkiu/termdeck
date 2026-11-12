@@ -41,3 +41,4 @@ Please see the `printables` directory for STL files. If you want to see the orig
 
 Please see [FROM_CLANKERS.md](FROM_CLANKERS.md) for software and wiring.
 
+Please see [termdeck_instructions.pdf](termdeck_instructions.pdf) for notes on how to put it together.
